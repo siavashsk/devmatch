@@ -14,7 +14,7 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
-import { type Post as PostInterface } from './interfaces/post.interface';
+import { Post as PostEntity } from './entities/post.entity';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PostExistsPipe } from './pipes/post.exist.pipe';
@@ -24,22 +24,14 @@ export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
   @Get()
-  findAll(@Query('search') search?: string): PostInterface[] {
-    const extractAllPosts = this.postsService.findAll();
-
-    if (search) {
-      return extractAllPosts.filter((singlePost) =>
-        singlePost.title.toLowerCase().includes(search),
-      );
-    }
-
-    return extractAllPosts;
+  async findAll(): Promise<PostEntity[]> {
+    return this.postsService.findAll();
   }
 
   @Get(':id')
-  findOne(
+  async findOne(
     @Param('id', ParseIntPipe, PostExistsPipe) id: number,
-  ): PostInterface {
+  ): Promise<PostEntity> {
     return this.postsService.findOne(id);
   }
 
@@ -51,7 +43,7 @@ export class PostsController {
       forbidNonWhitelisted: true,
     }),
   )
-  create(@Body() createPostData: CreatePostDto): PostInterface {
+  async create(@Body() createPostData: CreatePostDto): Promise<PostEntity> {
     return this.postsService.create(createPostData);
   }
 
@@ -59,13 +51,15 @@ export class PostsController {
   update(
     @Param('id', ParseIntPipe, PostExistsPipe) id: number,
     @Body() updatePostData: UpdatePostDto,
-  ): PostInterface {
+  ): Promise<PostEntity> {
     return this.postsService.update(id, updatePostData);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  delete(@Param('id', ParseIntPipe, PostExistsPipe) id: number): void {
+  async delete(
+    @Param('id', ParseIntPipe, PostExistsPipe) id: number,
+  ): Promise<void> {
     this.postsService.delete(id);
   }
 }
